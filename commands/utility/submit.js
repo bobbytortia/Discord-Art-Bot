@@ -6,15 +6,19 @@ module.exports = {
     .setName('submit')
     .setDescription('Submit your art for the contest')
     .addStringOption(option =>
-      option.setName('image_url')
-        .setDescription('URL of your artwork')
+      option.setName('username')
+        .setDescription('Your username (optional, defaults to your Discord username)')
+        .setRequired(false))
+    .addAttachmentOption(option =>
+      option.setName('image')
+        .setDescription('Upload your artwork')
         .setRequired(true)),
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });  // Defers reply to avoid timeout
 
-    const username = interaction.user.username;  // Get the username of the user
-    const imageUrl = interaction.options.getString('image_url');  // Get the image URL from the user
+    const username = interaction.options.getString('username') || interaction.user.username;  // Get the provided or default username
+    const imageUrl = interaction.options.getAttachment('image').url;  // Get the uploaded image URL
 
     try {
       // Check if the user has already submitted
