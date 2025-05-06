@@ -1,1 +1,1 @@
-node deployCommands.js && node index.js
+run = "node deployCommands.js && node index.js"
