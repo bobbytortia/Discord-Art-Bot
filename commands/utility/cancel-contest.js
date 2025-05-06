@@ -1,14 +1,25 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { clearSubmissions } = require('../../trackers/db.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { pool } = require('../../trackers/db');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('cancel-contest')
-    .setDescription('Cancel the current contest and delete all submissions.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
-
+    .setName('cancel')
+    .setDescription('Cancel the current contest and clear submissions'),
+  
   async execute(interaction) {
-    await clearSubmissions();
-    await interaction.reply({ content: '⚠️ All contest submissions have been deleted.', ephemeral: true });
-  }
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
+      await pool.query('DELETE FROM submissions');
+
+      await interaction.editReply({
+        content: '🗑️ Contest has been cancelled and all submissions cleared.',
+      });
+    } catch (err) {
+      console.error('❌ Error in /cancel:', err);
+      await interaction.editReply({
+        content: '❌ Failed to cancel the contest. Please try again later.',
+      });
+    }
+  },
 };

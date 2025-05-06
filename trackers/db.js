@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 });
 
 async function initDB() {
@@ -38,17 +38,14 @@ async function getAllSubmissions() {
 }
 
 async function clearSubmissions() {
-    await pool.query('DELETE FROM submissions');
-  }
-  module.exports = {
-    // existing exports...
-    clearSubmissions,
-  };
-  
+  await pool.query('DELETE FROM submissions');
+}
 
 module.exports = {
+  pool,
   initDB,
   addSubmission,
   hasSubmitted,
-  getAllSubmissions
+  getAllSubmissions,
+  clearSubmissions
 };

@@ -1,35 +1,39 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { addSubmission, hasSubmitted } = require('../../trackers/db.js');
+const { pool } = require('../../trackers/db');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit')
-    .setDescription('Submit your art!')
-    .addStringOption(opt =>
-      opt.setName('username').setDescription('Your Twitch or YouTube name').setRequired(true))
-    .addAttachmentOption(opt =>
-      opt.setName('image').setDescription('Your art image').setRequired(true)),
+    .setDescription('Submit your art entry')
+    .addStringOption(option =>
+      option.setName('username')
+        .setDescription('Your Twitch or YouTube name')
+        .setRequired(true))
+    .addAttachmentOption(option =>
+      option.setName('art')
+        .setDescription('Upload your art image')
+        .setRequired(true)),
   
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
+
     const username = interaction.options.getString('username');
-    const image = interaction.options.getAttachment('image');
+    const art = interaction.options.getAttachment('art');
 
-    if (!image.contentType.startsWith('image/')) {
-      return await interaction.reply({ content: '❌ That file is not an image.', ephemeral: true });
-    }
+    try {
+      await pool.query(
+        'INSERT INTO submissions (discord_id, username, art_url) VALUES ($1, $2, $3)',
+        [interaction.user.id, username, art.url]
+      );
 
-    const alreadySubmitted = await hasSubmitted(username);
-    if (alreadySubmitted) {
-      return await interaction.reply({
-        content: `🚫 You’ve already submitted, ${username}. One entry per contest!`,
-        ephemeral: true
+      await interaction.editReply({
+        content: '✅ Your art has been submitted successfully!',
+      });
+    } catch (err) {
+      console.error('❌ Error in /submit:', err);
+      await interaction.editReply({
+        content: '❌ There was an error submitting your art. Please try again later.',
       });
     }
-
-    await addSubmission(username, image.url);
-    await interaction.reply({
-      content: `🎨 Thanks, ${username}! Your submission has been received.`,
-      ephemeral: true
-    });
-  }
+  },
 };
