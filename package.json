@@ -21,8 +21,11 @@
     "axios": "^1.9.0",
     "better-sqlite3": "^11.9.1",
     "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "luxon": "^3.6.1",
     "node-fetch": "^2.7.0",
+    "pg": "^8.15.6",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

@@ -1,5 +1,7 @@
 modules = ["nodejs-20"]
+
 [workflows]
+runButton = "Run Command"
 
 [[workflows.workflow]]
 name = "Run Command"
@@ -13,4 +15,8 @@ args = "node deploy-commands.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node index.js"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
 
