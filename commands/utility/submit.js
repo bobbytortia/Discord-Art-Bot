@@ -1,42 +1,35 @@
-const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
-const { saveSubmission } = require('../../trackers/db'); // Adjust if your DB path is different
+const { SlashCommandBuilder } = require('discord.js');
+const { addSubmission, hasSubmitted } = require('../../trackers/db');  // Importing the necessary database functions
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit')
-    .setDescription('Submit your art to the contest')
+    .setDescription('Submit your art for the contest')
     .addStringOption(option =>
-      option.setName('username')
-        .setDescription('Your Twitch or YouTube username')
-        .setRequired(true))
-    .addAttachmentOption(option =>
-      option.setName('art')
-        .setDescription('Your artwork image')
+      option.setName('image_url')
+        .setDescription('URL of your artwork')
         .setRequired(true)),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });  // Defers reply to avoid timeout
+
+    const username = interaction.user.username;  // Get the username of the user
+    const imageUrl = interaction.options.getString('image_url');  // Get the image URL from the user
+
     try {
-      if (!interaction.deferred && !interaction.replied) {
-        await interaction.deferReply({ ephemeral: true });
+      // Check if the user has already submitted
+      if (await hasSubmitted(username)) {
+        return interaction.editReply('❌ You have already submitted your art for this contest!');
       }
 
-      const username = interaction.options.getString('username');
-      const art = interaction.options.getAttachment('art');
+      // Add submission to the database
+      await addSubmission(username, imageUrl);
 
-      // Save submission to DB
-      await saveSubmission(username, art.url);
-
-      await interaction.editReply({
-        content: '✅ Your artwork has been submitted successfully!',
-      });
-
+      // Send confirmation message
+      await interaction.editReply('✅ Your submission has been saved! Good luck!');
     } catch (err) {
       console.error('❌ Error in /submit:', err);
-      if (!interaction.replied) {
-        await interaction.editReply({
-          content: '❌ Failed to submit artwork. Please try again.',
-        });
-      }
+      await interaction.editReply('❌ Failed to submit your art. Please try again.');
     }
   },
 };
