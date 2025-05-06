@@ -7,33 +7,44 @@ module.exports = {
     .setDescription('Submit your art for the contest')
     .addStringOption(option =>
       option.setName('username')
-        .setDescription('Your username (optional, defaults to your Discord username)')
-        .setRequired(false))
+        .setDescription('Your username')
+        .setRequired(true))  // Make username required
     .addAttachmentOption(option =>
       option.setName('image')
         .setDescription('Upload your artwork')
-        .setRequired(true)),
+        .setRequired(true)),  // Make image required
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });  // Defers reply to avoid timeout
+    // Check if interaction has already been deferred
+    if (!interaction.replied) {
+      await interaction.deferReply({ ephemeral: true });
+    }
 
-    const username = interaction.options.getString('username') || interaction.user.username;  // Get the provided or default username
+    const username = interaction.options.getString('username');  // Get the provided username
     const imageUrl = interaction.options.getAttachment('image').url;  // Get the uploaded image URL
 
     try {
       // Check if the user has already submitted
       if (await hasSubmitted(username)) {
-        return interaction.editReply('❌ You have already submitted your art for this contest!');
+        if (!interaction.replied) {
+          await interaction.editReply('❌ You have already submitted your art for this contest!');
+        }
+        return;
       }
 
       // Add submission to the database
       await addSubmission(username, imageUrl);
 
       // Send confirmation message
-      await interaction.editReply('✅ Your submission has been saved! Good luck!');
+      if (!interaction.replied) {
+        await interaction.editReply('✅ Your submission has been saved! Good luck!');
+      }
     } catch (err) {
       console.error('❌ Error in /submit:', err);
-      await interaction.editReply('❌ Failed to submit your art. Please try again.');
+      if (!interaction.replied) {
+        await interaction.editReply('❌ Failed to submit your art. Please try again.');
+      }
     }
   },
 };
+

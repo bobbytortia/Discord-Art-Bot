@@ -15,11 +15,9 @@ module.exports = {
 
       try {
         console.log(`Executing command: ${interaction.commandName}`);
+        // Do not defer the reply here, let the command handle it
 
-        // Immediately acknowledge the interaction to avoid the 3-second timeout
-        await interaction.deferReply();
-
-        // Now, execute the command
+        // Execute the command
         await command.execute(interaction);
       } catch (error) {
         console.error(`Error executing ${interaction.commandName}:`, error);
