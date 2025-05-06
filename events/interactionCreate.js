@@ -1,4 +1,3 @@
-const { activeEvents } = require('../trackers/voteTracker');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
