@@ -1,1 +1,15 @@
-run = "node deployCommands.js && node index.js"
+[workflows]
+
+[[workflows.workflow]]
+name = "Run Command"
+mode = "sequential"
+author = 42342392
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node deploy-commands.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
+
