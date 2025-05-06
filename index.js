@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 const { initDB } = require('./trackers/db');
+require('./keepAlive');
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
