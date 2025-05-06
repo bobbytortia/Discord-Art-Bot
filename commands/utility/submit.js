@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { addSubmission, hasSubmitted } = require('../trackers/db');
+const { addSubmission, hasSubmitted } = require('../../trackers/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()

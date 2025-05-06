@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { clearSubmissions } = require('../trackers/db');
+const { clearSubmissions } = require('../../trackers/db.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
