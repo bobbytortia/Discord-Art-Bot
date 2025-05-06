@@ -8,44 +8,88 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL'; // Replace or use .env
-const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_KEY'; // Use service key for bot
+// Handle pool errors (e.g., connection termination)
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client:', err.message);
+    console.error('Stack:', err.stack);
+    // Attempt to reconnect
+    setTimeout(() => {
+        console.log('Attempting to reconnect to database...');
+        pool.connect((connectErr, client, release) => {
+            if (connectErr) {
+                console.error('Reconnection failed:', connectErr.message);
+            } else {
+                console.log('Reconnected to database successfully');
+                release();
+            }
+        });
+    }, 5000); // Wait 5 seconds before retrying
+});
+
+// Initialize Supabase client for Storage
+const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_KEY';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function initDB() {
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS submissions (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            image_url TEXT NOT NULL,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `);
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS submissions (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                image_url TEXT NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log('Database initialized successfully');
+    } catch (err) {
+        console.error('Error initializing database:', err.message);
+        throw err;
+    }
 }
 
 async function addSubmission(username, imageUrl) {
-    await pool.query(
-        'INSERT INTO submissions (username, image_url) VALUES ($1, $2)',
-        [username, imageUrl]
-    );
+    try {
+        await pool.query(
+            'INSERT INTO submissions (username, image_url) VALUES ($1, $2)',
+            [username, imageUrl]
+        );
+    } catch (err) {
+        console.error('Error adding submission:', err.message);
+        throw err;
+    }
 }
 
 async function hasSubmitted(username) {
-    const res = await pool.query(
-        'SELECT 1 FROM submissions WHERE username = $1 LIMIT 1',
-        [username]
-    );
-    return res.rowCount > 0;
+    try {
+        const res = await pool.query(
+            'SELECT 1 FROM submissions WHERE username = $1 LIMIT 1',
+            [username]
+        );
+        return res.rowCount > 0;
+    } catch (err) {
+        console.error('Error checking submission:', err.message);
+        throw err;
+    }
 }
 
 async function getAllSubmissions() {
-    const res = await pool.query('SELECT * FROM submissions');
-    return res.rows;
+    try {
+        const res = await pool.query('SELECT * FROM submissions');
+        return res.rows;
+    } catch (err) {
+        console.error('Error fetching submissions:', err.message);
+        throw err;
+    }
 }
 
 async function clearSubmissions() {
-    await pool.query('DELETE FROM submissions');
+    try {
+        await pool.query('DELETE FROM submissions');
+    } catch (err) {
+        console.error('Error clearing submissions:', err.message);
+        throw err;
+    }
 }
 
 module.exports = {
@@ -55,5 +99,5 @@ module.exports = {
     hasSubmitted,
     getAllSubmissions,
     clearSubmissions,
-    supabase // Export the Supabase client for Storage operations
+    supabase
 };

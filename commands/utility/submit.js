@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { addSubmission, hasSubmitted, supabase } = require('../../trackers/db'); // Import supabase client
+const { addSubmission, hasSubmitted, supabase } = require('../../trackers/db');
 const fetch = require('node-fetch');
 
 module.exports = {
@@ -24,7 +24,6 @@ module.exports = {
         const imageAttachment = interaction.options.getAttachment('image');
 
         try {
-            // Check if the user has already submitted
             if (await hasSubmitted(username)) {
                 if (!interaction.replied) {
                     await interaction.editReply('❌ You have already submitted your art for this contest!');
@@ -32,7 +31,6 @@ module.exports = {
                 return;
             }
 
-            // Validate the attachment
             if (!imageAttachment.contentType || !imageAttachment.contentType.startsWith('image/')) {
                 if (!interaction.replied) {
                     await interaction.editReply('❌ Please upload a valid image file.');
@@ -40,7 +38,6 @@ module.exports = {
                 return;
             }
 
-            // Optional: Validate file size (e.g., 5MB limit)
             if (imageAttachment.size > 5 * 1024 * 1024) {
                 if (!interaction.replied) {
                     await interaction.editReply('❌ File is too large. Please upload an image smaller than 5MB.');
@@ -48,14 +45,12 @@ module.exports = {
                 return;
             }
 
-            // Download the image from Discord
             const response = await fetch(imageAttachment.url);
             if (!response.ok) {
                 throw new Error('Failed to download image from Discord');
             }
             const imageBuffer = await response.buffer();
 
-            // Upload the image to Supabase Storage
             const fileExt = imageAttachment.name.split('.').pop();
             const fileName = `${username}-${Date.now()}.${fileExt}`;
             const { error: uploadError } = await supabase.storage
@@ -72,7 +67,6 @@ module.exports = {
                 return;
             }
 
-            // Get the public URL of the uploaded image
             const { data: urlData } = supabase.storage
                 .from('art-submissions')
                 .getPublicUrl(fileName);
@@ -80,14 +74,14 @@ module.exports = {
             const imageUrl = urlData.publicUrl;
             console.log('Uploaded image URL:', imageUrl);
 
-            // Add submission to the database with the Supabase URL
             await addSubmission(username, imageUrl);
 
             if (!interaction.replied) {
                 await interaction.editReply('✅ Your submission has been saved! Good luck!');
             }
         } catch (err) {
-            console.error('❌ Error in /submit:', err);
+            console.error('❌ Error in /submit:', err.message);
+            console.error('Stack:', err.stack);
             if (!interaction.replied) {
                 await interaction.editReply('❌ Failed to submit your art. Please try again.');
             }
