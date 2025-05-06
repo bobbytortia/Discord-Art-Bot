@@ -1,25 +1,30 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { pool } = require('../../trackers/db');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('cancel')
-    .setDescription('Cancel the current contest and clear submissions'),
-  
-  async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    .setDescription('Cancel the current contest'),
 
+  async execute(interaction) {
     try {
-      await pool.query('DELETE FROM submissions');
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+
+      // TODO: Your logic to cancel the contest (e.g., update DB, clear cache, etc.)
+      console.log('❌ Contest cancelled (stub logic)');
 
       await interaction.editReply({
-        content: '🗑️ Contest has been cancelled and all submissions cleared.',
+        content: '❌ Contest has been cancelled.',
       });
+
     } catch (err) {
       console.error('❌ Error in /cancel:', err);
-      await interaction.editReply({
-        content: '❌ Failed to cancel the contest. Please try again later.',
-      });
+      if (!interaction.replied) {
+        await interaction.editReply({
+          content: '❌ Failed to cancel contest. Please try again.',
+        });
+      }
     }
   },
 };

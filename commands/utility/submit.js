@@ -1,39 +1,42 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { pool } = require('../../trackers/db');
+const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
+const { saveSubmission } = require('../../trackers/db'); // Adjust if your DB path is different
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit')
-    .setDescription('Submit your art entry')
+    .setDescription('Submit your art to the contest')
     .addStringOption(option =>
       option.setName('username')
-        .setDescription('Your Twitch or YouTube name')
+        .setDescription('Your Twitch or YouTube username')
         .setRequired(true))
     .addAttachmentOption(option =>
       option.setName('art')
-        .setDescription('Upload your art image')
+        .setDescription('Your artwork image')
         .setRequired(true)),
-  
+
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
-    const username = interaction.options.getString('username');
-    const art = interaction.options.getAttachment('art');
-
     try {
-      await pool.query(
-        'INSERT INTO submissions (discord_id, username, art_url) VALUES ($1, $2, $3)',
-        [interaction.user.id, username, art.url]
-      );
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+
+      const username = interaction.options.getString('username');
+      const art = interaction.options.getAttachment('art');
+
+      // Save submission to DB
+      await saveSubmission(username, art.url);
 
       await interaction.editReply({
-        content: '✅ Your art has been submitted successfully!',
+        content: '✅ Your artwork has been submitted successfully!',
       });
+
     } catch (err) {
       console.error('❌ Error in /submit:', err);
-      await interaction.editReply({
-        content: '❌ There was an error submitting your art. Please try again later.',
-      });
+      if (!interaction.replied) {
+        await interaction.editReply({
+          content: '❌ Failed to submit artwork. Please try again.',
+        });
+      }
     }
   },
 };
