@@ -35,7 +35,7 @@ const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
   try {
-    const guildId = '596908408255545354'; // Replace with your guild ID
+    const guildId = '1369207219953864755'; // Replace with your guild ID
     console.log(`📡 Deploying ${commands.length} commands to ${guildId}...`);
     const data = await rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
