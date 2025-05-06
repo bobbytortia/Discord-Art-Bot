@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/bobbytortia/Discord-Art-Bot#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
     "axios": "^1.9.0",
     "better-sqlite3": "^11.9.1",
     "discord.js": "^14.19.3",
