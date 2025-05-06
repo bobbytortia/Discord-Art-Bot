@@ -1,21 +1,21 @@
 {
-  "name": "discord-bot",
+  "name": "discord-art-contest-bot",
   "version": "1.0.0",
-  "description": "Discord Bot with Event and Music functionality.",
+  "description": "Discord Bot with Event submissions.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bobbytortia/Discord-Bot.git"
+    "url": "git+https://github.com/bobbytortia/Discord-Art-Bot"
   },
   "author": "Ethan Harry",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/bobbytortia/Discord-Bot/issues"
+    "url": "https://github.com/bobbytortia/Discord-Art-Bot/issues"
   },
-  "homepage": "https://github.com/bobbytortia/Discord-Bot#readme",
+  "homepage": "https://github.com/bobbytortia/Discord-Art-Bot#readme",
   "dependencies": {
     "axios": "^1.9.0",
     "better-sqlite3": "^11.9.1",
