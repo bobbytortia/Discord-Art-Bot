@@ -9,13 +9,29 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
 
-// Load commands
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
+function getAllCommandFiles(dirPath, arrayOfFiles = []) {
+  const files = fs.readdirSync(dirPath);
+  for (const file of files) {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      getAllCommandFiles(fullPath, arrayOfFiles);
+    } else if (file.endsWith('.js')) {
+      arrayOfFiles.push(fullPath);
+    }
+  }
+  return arrayOfFiles;
+}
+
+const commandFiles = getAllCommandFiles(commandsPath);
+for (const filePath of commandFiles) {
   const command = require(filePath);
-  client.commands.set(command.data.name, command);
+  if (command.data && command.execute) {
+    client.commands.set(command.data.name, command);
+    console.log(`✅ Loaded command: ${command.data.name}`);
+  } else {
+    console.warn(`⚠️ Skipping invalid command file: ${filePath}`);
+  }
 }
 
 // Load event handlers
