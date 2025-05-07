@@ -1,0 +1,136 @@
+/* Global styles */
+body {
+  background-color: #1e1e1e;
+  color: white;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1.title {
+  font-size: 2.5em;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+button.spin-button {
+  background-color: #3498db;
+  color: white;
+  font-size: 1.2em;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+button.spin-button:hover {
+  background-color: #2980b9;
+}
+
+/* Box styles */
+.container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.boxes {
+  display: flex;
+  justify-content: flex-start;
+  width: 80vw;
+  height: 60vh;
+  position: relative;
+}
+
+.box {
+  margin: 0 10px;
+  width: 300px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, z-index 0.3s ease;
+  flex-shrink: 0;
+}
+
+.box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.winner {
+  border: 5px solid #f39c12;
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+.box.enlarged {
+  transform: scale(1.5);
+  z-index: 999;
+  transition: transform 0.3s ease, z-index 0.3s ease;
+}
+
+.loading {
+  font-size: 1.2em;
+  text-align: center;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Glow animation for winner */
+@keyframes glow {
+  from {
+      box-shadow: 0 0 10px #f39c12;
+  }
+  to {
+      box-shadow: 0 0 20px #f39c12;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  h1.title {
+      font-size: 2em;
+      margin-bottom: 30px;
+  }
+
+  .boxes {
+      width: 90vw;
+      height: 50vh;
+  }
+
+  .box {
+      width: 200px;
+      height: 300px;
+      margin: 0 5px;
+  }
+
+  button.spin-button {
+      font-size: 1em;
+      padding: 10px 20px;
+  }
+
+  .page-container {
+      padding: 10px;
+  }
+}
