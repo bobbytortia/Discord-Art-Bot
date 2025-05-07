@@ -10,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 gsap.registerPlugin(Draggable, ScrollTrigger);
 
 let loopTimeline;
-let lastBoxIndex = 0; // Track the last box index that was centered
+let lastBoxIndex = 0;
 
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
@@ -92,7 +92,6 @@ function initializeSeamlessLoop() {
             if (currentX >= totalWidth) {
                 gsap.set(boxesContainer, { x: 0 });
             }
-            // Update lastBoxIndex based on the current position
             lastBoxIndex = Math.floor(currentX / boxWidth) % (boxes.length / 2);
         }
     });
@@ -118,7 +117,6 @@ function initializeInteractions() {
             x: x => Math.round(x / boxWidth) * boxWidth
         },
         onDrag: function() {
-            // Update lastBoxIndex during drag
             const currentX = Math.abs(this.x);
             lastBoxIndex = Math.floor(currentX / boxWidth) % (boxes.length / 2);
         }
@@ -138,8 +136,8 @@ function initializeInteractions() {
 
                 const originalIndex = parseInt(box.dataset.index);
                 const viewportWidth = window.innerWidth;
-                const containerWidth = boxesContainer.offsetWidth;
-                const centerOffset = (viewportWidth - boxWidth) / 2 - (containerWidth - viewportWidth) / 2;
+                const containerWidth = boxesContainer.getBoundingClientRect().width;
+                const centerOffset = (viewportWidth - boxWidth) / 2;
                 const containerX = -originalIndex * boxWidth + centerOffset;
 
                 gsap.to(boxesContainer, {
@@ -191,9 +189,8 @@ function initializeInteractions() {
         const spinDuration = 5;
         const spins = 2;
         const viewportWidth = window.innerWidth;
-        const containerWidth = boxesContainer.offsetWidth;
+        const containerWidth = boxesContainer.getBoundingClientRect().width;
 
-        // Calculate distance to spin (move forward only)
         const distanceToSpin = spins * totalBoxes * boxWidth;
         const currentX = gsap.getProperty(boxesContainer, 'x');
         const targetX = currentX - distanceToSpin;
@@ -203,21 +200,18 @@ function initializeInteractions() {
             duration: spinDuration,
             ease: 'power2.inOut',
             onComplete: () => {
-                // Snap to the nearest box
                 const snapX = Math.round(targetX / boxWidth) * boxWidth;
                 gsap.to(boxesContainer, {
                     x: snapX,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
-                        // Determine the winner based on the stopping position
                         const currentX = Math.abs(snapX);
                         const winnerIndex = Math.floor(currentX / boxWidth) % totalBoxes;
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
 
-                        // Center the winner
-                        const centerOffset = (viewportWidth - boxWidth) / 2 - (containerWidth - viewportWidth) / 2;
+                        const centerOffset = (viewportWidth - boxWidth) / 2;
                         const containerX = -winnerIndex * boxWidth + centerOffset;
                         gsap.to(boxesContainer, {
                             x: containerX,

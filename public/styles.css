@@ -10,6 +10,7 @@ body {
   align-items: flex-start;
   min-height: 100vh;
   overflow-x: hidden;
+  overflow-y: auto; /* Allow vertical scrolling if needed */
 }
 
 /* Main container for the page content */
@@ -43,7 +44,7 @@ button.spin-button {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-top: 30px;
-  margin-bottom: 40px; /* Increased to push .boxes down */
+  margin-bottom: 60px; /* Increased to push .boxes further down */
 }
 
 /* Container for the seamless loop */
@@ -51,6 +52,8 @@ button.spin-button {
   width: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  justify-content: center; /* Ensure centering */
 }
 
 /* Seamless loop container */
@@ -60,8 +63,10 @@ button.spin-button {
   width: 95vw;
   height: 60vh;
   position: relative;
-  margin-top: 40px; /* Added to lower the wheel */
-  margin-bottom: 20px;
+  margin-top: 80px; /* Increased to lower the wheel further */
+  margin-bottom: 40px; /* Increased to ensure space at the bottom */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Individual box styling */
@@ -145,7 +150,8 @@ button.spin-button {
   .boxes {
       width: 98vw;
       height: 50vh;
-      margin-top: 20px; /* Reduced for mobile */
+      margin-top: 40px; /* Reduced for mobile but still enough to avoid clipping */
+      margin-bottom: 20px;
   }
 
   .box {
@@ -167,7 +173,7 @@ button.spin-button {
   button.spin-button {
       font-size: 1em;
       padding: 10px 20px;
-      margin-bottom: 20px;
+      margin-bottom: 30px; /* Adjusted for mobile */
   }
 
   .page-container {
