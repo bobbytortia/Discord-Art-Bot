@@ -37,11 +37,28 @@ async function loadSubmissions() {
 
         boxesContainer.innerHTML = '';
         const fragment = document.createDocumentFragment();
+
+        // Preload images
+        const preloadPromises = data.map(submission => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = submission.image_url;
+                img.onload = resolve;
+                img.onerror = () => {
+                    img.src = 'https://via.placeholder.com/280x380?text=Image+Not+Found';
+                    resolve();
+                };
+            });
+        });
+
+        await Promise.all(preloadPromises);
+        console.log('All images preloaded');
+
         data.forEach(submission => {
             const box = document.createElement('div');
             box.classList.add('box');
             box.dataset.id = submission.id;
-            box.innerHTML = `<img src="${submission.image_url}" alt="Art by ${submission.username}" loading="lazy" onerror="this.src='https://via.placeholder.com/280x380?text=Image+Not+Found';" />`;
+            box.innerHTML = `<img src="${submission.image_url}" alt="Art by ${submission.username}" loading="lazy" />`;
             fragment.appendChild(box);
         });
 
@@ -153,8 +170,8 @@ function initializeInteractions() {
         if (loopTimeline) loopTimeline.pause();
 
         const totalBoxes = boxes.length / 2;
-        const spinDuration = 3;
-        const spins = 3;
+        const spinDuration = 5; // Increased duration for slower spin
+        const spins = 2; // Reduced spins for smoother animation
         const randomIndex = Math.floor(Math.random() * totalBoxes);
         const targetX = -(randomIndex * boxWidth + spins * totalBoxes * boxWidth);
 
@@ -173,30 +190,28 @@ function initializeInteractions() {
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
 
-                        // Reset container position to center the winner
-                        const containerRect = boxesContainer.getBoundingClientRect();
-                        const winnerRect = winnerBox.getBoundingClientRect();
-                        const viewportWidth = window.innerWidth;
-                        const viewportHeight = window.innerHeight;
-                        const scale = viewportWidth <= 768 ? 1.5 : 2;
-
-                        // Center the winner box in the viewport
-                        const centerX = (viewportWidth - winnerRect.width * scale) / 2 - winnerRect.left;
-                        const centerY = (viewportHeight - winnerRect.height * scale) / 2 - winnerRect.top;
-                        gsap.to(winnerBox, {
-                            x: centerX,
-                            y: centerY,
-                            scale: scale,
-                            duration: 0.5,
-                            ease: 'elastic.out(1, 0.5)'
-                        });
-
-                        // Adjust container to ensure winner is visible
+                        // First, position the container to bring the winner into view
                         const containerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
                         gsap.to(boxesContainer, {
                             x: containerX,
                             duration: 0.5,
-                            ease: 'power2.out'
+                            ease: 'power2.out',
+                            onComplete: () => {
+                                // Now center the winner box in the viewport
+                                const winnerRect = winnerBox.getBoundingClientRect();
+                                const viewportWidth = window.innerWidth;
+                                const viewportHeight = window.innerHeight;
+                                const scale = viewportWidth <= 768 ? 1.5 : 2;
+                                const centerX = (viewportWidth - winnerRect.width * scale) / 2 - winnerRect.left;
+                                const centerY = (viewportHeight - winnerRect.height * scale) / 2 - winnerRect.top;
+                                gsap.to(winnerBox, {
+                                    x: centerX,
+                                    y: centerY,
+                                    scale: scale,
+                                    duration: 0.5,
+                                    ease: 'elastic.out(1, 0.5)'
+                                });
+                            }
                         });
                     }
                 });
