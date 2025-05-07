@@ -18,8 +18,8 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1800px; /* Further increased to allow more width on large screens */
-  padding: 40px 10px; /* Reduced horizontal padding to maximize content width */
+  max-width: 1800px;
+  padding: 40px 10px;
   box-sizing: border-box;
   min-height: 100vh;
 }
@@ -43,11 +43,7 @@ button.spin-button {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-top: 30px;
-  margin-bottom: 20px;
-}
-
-button.spin-button:hover {
-  background-color: #2980b9;
+  margin-bottom: 40px; /* Increased to push .boxes down */
 }
 
 /* Container for the seamless loop */
@@ -61,9 +57,10 @@ button.spin-button:hover {
 .boxes {
   display: flex;
   justify-content: flex-start;
-  width: 95vw; /* Increased to use more viewport width */
+  width: 95vw;
   height: 60vh;
   position: relative;
+  margin-top: 40px; /* Added to lower the wheel */
   margin-bottom: 20px;
 }
 
@@ -146,8 +143,9 @@ button.spin-button:hover {
   }
 
   .boxes {
-      width: 98vw; /* Maximize width on mobile */
+      width: 98vw;
       height: 50vh;
+      margin-top: 20px; /* Reduced for mobile */
   }
 
   .box {
@@ -169,10 +167,11 @@ button.spin-button:hover {
   button.spin-button {
       font-size: 1em;
       padding: 10px 20px;
+      margin-bottom: 20px;
   }
 
   .page-container {
-      padding: 20px 5px; /* Reduced padding on mobile */
+      padding: 20px 5px;
   }
 }
 

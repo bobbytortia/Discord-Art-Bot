@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 gsap.registerPlugin(Draggable, ScrollTrigger);
 
 let loopTimeline;
+let lastBoxIndex = 0; // Track the last box index that was centered
 
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
@@ -57,7 +58,7 @@ async function loadSubmissions() {
             const box = document.createElement('div');
             box.classList.add('box');
             box.dataset.id = submission.id;
-            box.dataset.index = index; // Store original index
+            box.dataset.index = index;
             box.innerHTML = `<img src="${submission.image_url}" alt="Art by ${submission.username}" loading="lazy" />`;
             fragment.appendChild(box);
         });
@@ -87,9 +88,12 @@ function initializeSeamlessLoop() {
         duration: boxes.length / 2,
         ease: 'none',
         onUpdate: function() {
-            if (Math.abs(gsap.getProperty(boxesContainer, 'x')) >= totalWidth) {
+            const currentX = Math.abs(gsap.getProperty(boxesContainer, 'x'));
+            if (currentX >= totalWidth) {
                 gsap.set(boxesContainer, { x: 0 });
             }
+            // Update lastBoxIndex based on the current position
+            lastBoxIndex = Math.floor(currentX / boxWidth) % (boxes.length / 2);
         }
     });
 }
@@ -112,6 +116,11 @@ function initializeInteractions() {
         inertia: true,
         snap: {
             x: x => Math.round(x / boxWidth) * boxWidth
+        },
+        onDrag: function() {
+            // Update lastBoxIndex during drag
+            const currentX = Math.abs(this.x);
+            lastBoxIndex = Math.floor(currentX / boxWidth) % (boxes.length / 2);
         }
     });
 
@@ -127,23 +136,24 @@ function initializeInteractions() {
                 box.classList.add('enlarged');
                 if (loopTimeline) loopTimeline.pause();
 
-                // Calculate the box's original index (accounting for duplicates)
                 const originalIndex = parseInt(box.dataset.index);
-                const containerX = -originalIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
+                const viewportWidth = window.innerWidth;
+                const containerWidth = boxesContainer.offsetWidth;
+                const centerOffset = (viewportWidth - boxWidth) / 2 - (containerWidth - viewportWidth) / 2;
+                const containerX = -originalIndex * boxWidth + centerOffset;
 
-                // Scroll the container to center the box
                 gsap.to(boxesContainer, {
                     x: containerX,
                     duration: 0.5,
                     ease: 'power2.out',
                     onComplete: () => {
-                        // Now enlarge the box in place
                         const scale = window.innerWidth <= 768 ? (window.innerHeight <= 600 ? 1.2 : 1.5) : 2;
                         gsap.to(box, {
                             scale: scale,
                             duration: 0.5,
                             ease: 'elastic.out(1, 0.5)'
                         });
+                        lastBoxIndex = originalIndex;
                     }
                 });
             } else {
@@ -177,40 +187,50 @@ function initializeInteractions() {
         if (loopTimeline) loopTimeline.pause();
 
         const totalBoxes = boxes.length / 2;
+        const boxWidth = boxes[0].offsetWidth + 20;
         const spinDuration = 5;
         const spins = 2;
-        const randomIndex = Math.floor(Math.random() * totalBoxes);
-        const targetX = -(randomIndex * boxWidth + spins * totalBoxes * boxWidth);
+        const viewportWidth = window.innerWidth;
+        const containerWidth = boxesContainer.offsetWidth;
+
+        // Calculate distance to spin (move forward only)
+        const distanceToSpin = spins * totalBoxes * boxWidth;
+        const currentX = gsap.getProperty(boxesContainer, 'x');
+        const targetX = currentX - distanceToSpin;
 
         gsap.to(boxesContainer, {
             x: targetX,
             duration: spinDuration,
             ease: 'power2.inOut',
             onComplete: () => {
+                // Snap to the nearest box
                 const snapX = Math.round(targetX / boxWidth) * boxWidth;
                 gsap.to(boxesContainer, {
                     x: snapX,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
-                        const winnerIndex = Math.abs(Math.round(snapX / boxWidth)) % totalBoxes;
+                        // Determine the winner based on the stopping position
+                        const currentX = Math.abs(snapX);
+                        const winnerIndex = Math.floor(currentX / boxWidth) % totalBoxes;
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
 
-                        // Position the container to center the winner
-                        const containerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
+                        // Center the winner
+                        const centerOffset = (viewportWidth - boxWidth) / 2 - (containerWidth - viewportWidth) / 2;
+                        const containerX = -winnerIndex * boxWidth + centerOffset;
                         gsap.to(boxesContainer, {
                             x: containerX,
                             duration: 0.5,
                             ease: 'power2.out',
                             onComplete: () => {
-                                // Enlarge the winner in place
                                 const scale = window.innerWidth <= 768 ? (window.innerHeight <= 600 ? 1.2 : 1.5) : 2;
                                 gsap.to(winnerBox, {
                                     scale: scale,
                                     duration: 0.5,
                                     ease: 'elastic.out(1, 0.5)'
                                 });
+                                lastBoxIndex = winnerIndex;
                             }
                         });
                     }
