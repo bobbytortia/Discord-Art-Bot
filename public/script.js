@@ -60,7 +60,7 @@ async function loadSubmissions() {
             box.dataset.id = submission.id;
             box.dataset.index = index;
             box.innerHTML = `<img src="${submission.image_url}" alt="Art by ${submission.username}" loading="lazy" />`;
-            box.style.backgroundImage = `url(${submission.image_url})`; // For reflection fallback
+            box.style.backgroundImage = `url(${submission.image_url})`;
             fragment.appendChild(box);
         });
 
@@ -80,7 +80,7 @@ function initializeSeamlessLoop() {
 
     gsap.set(boxes, { display: 'block', yPercent: -50 });
 
-    const STAGGER = 0.2; // Increased stagger for more spacing
+    const STAGGER = 0.2;
     const DURATION = 1;
     const OFFSET = 0;
     const BOXES = gsap.utils.toArray(boxes);
@@ -96,12 +96,11 @@ function initializeSeamlessLoop() {
     SHIFTS.forEach((BOX, index) => {
         const BOX_TL = gsap.timeline()
             .set(BOX, {
-                xPercent: 300, // Wider range for more pronounced movement
-                rotateY: -60, // More dramatic folding
+                xPercent: 300,
+                rotateY: -60,
                 opacity: 0,
                 scale: 0.6,
             })
-            // Opacity & Scale
             .to(BOX, {
                 opacity: 1,
                 scale: 1,
@@ -112,7 +111,6 @@ function initializeSeamlessLoop() {
                 scale: 0.6,
                 duration: 0.2,
             }, 0.8)
-            // Panning
             .fromTo(BOX, {
                 xPercent: 300,
             }, {
@@ -121,7 +119,6 @@ function initializeSeamlessLoop() {
                 immediateRender: false,
                 ease: 'power1.inOut',
             }, 0)
-            // Rotations
             .fromTo(BOX, {
                 rotateY: -60,
             }, {
@@ -130,19 +127,17 @@ function initializeSeamlessLoop() {
                 duration: 1,
                 ease: 'power4.inOut',
             }, 0)
-            // Scale & Z for center box
             .to(BOX, {
-                z: 150, // More elevation
-                scale: 1.5, // Larger center box
+                z: 150,
+                scale: 1.5,
                 duration: 0.2,
                 repeat: 1,
                 yoyo: true,
             }, 0.4)
-            // Z-index
             .fromTo(BOX, {
                 zIndex: 1,
             }, {
-                zIndex: BOXES.length * 2, // Higher z-index for center
+                zIndex: BOXES.length * 2,
                 repeat: 1,
                 yoyo: true,
                 ease: 'none',
@@ -209,7 +204,7 @@ function initializeInteractions() {
                 if (loopTimeline) loopTimeline.pause();
 
                 const originalIndex = parseInt(box.dataset.index);
-                const targetProgress = originalIndex / totalBoxes;
+                const targetProgress = (originalIndex + 0.5) / totalBoxes; // Center the box
                 gsap.to(loopTimeline, {
                     progress: targetProgress,
                     duration: 0.5,
@@ -254,10 +249,23 @@ function initializeInteractions() {
 
         if (loopTimeline) loopTimeline.pause();
 
-        const spins = 2;
-        const spinDuration = 8; // Increased duration for slower spin
+        const spins = 3; // Number of full cycles before landing
+        const spinDuration = 8;
         const currentProgress = loopTimeline.progress();
-        const targetProgress = currentProgress + spins;
+
+        // Randomly select the winner upfront
+        const winnerIndex = Math.floor(Math.random() * totalBoxes);
+        const winnerBox = BOXES[winnerIndex];
+
+        // Calculate the target progress to land on the winner in the middle
+        // Each box's animation cycle is STAGGER long, and the middle is at 0.5 of that cycle
+        // The winner's animation starts at (winnerIndex * STAGGER), and we want it at the midpoint
+        const STAGGER = 0.2;
+        const winnerCycleStart = winnerIndex * STAGGER;
+        const winnerMiddleProgress = (winnerCycleStart + (STAGGER * 0.5)) / (STAGGER * totalBoxes);
+        // Add full cycles to ensure spinning
+        const fullCycles = Math.floor(currentProgress) + spins;
+        const targetProgress = fullCycles + winnerMiddleProgress;
 
         gsap.to(loopTimeline, {
             progress: targetProgress,
@@ -267,11 +275,10 @@ function initializeInteractions() {
                 loopTimeline.progress(loopTimeline.progress() % 1);
             },
             onComplete: () => {
-                const winnerIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
-                const winnerBox = BOXES[winnerIndex];
-                const winnerProgress = winnerIndex / totalBoxes;
+                // Ensure the winner is exactly in the middle
+                const finalProgress = winnerMiddleProgress % 1;
                 gsap.to(loopTimeline, {
-                    progress: winnerProgress,
+                    progress: finalProgress,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
