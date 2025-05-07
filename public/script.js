@@ -60,6 +60,7 @@ async function loadSubmissions() {
             box.dataset.id = submission.id;
             box.dataset.index = index;
             box.innerHTML = `<img src="${submission.image_url}" alt="Art by ${submission.username}" loading="lazy" />`;
+            box.style.backgroundImage = `url(${submission.image_url})`; // For reflection fallback
             fragment.appendChild(box);
         });
 
@@ -79,7 +80,7 @@ function initializeSeamlessLoop() {
 
     gsap.set(boxes, { display: 'block', yPercent: -50 });
 
-    const STAGGER = 0.1;
+    const STAGGER = 0.2; // Increased stagger for more spacing
     const DURATION = 1;
     const OFFSET = 0;
     const BOXES = gsap.utils.toArray(boxes);
@@ -90,50 +91,50 @@ function initializeSeamlessLoop() {
         ease: 'none',
     });
 
-    const SHIFTS = [...BOXES, ...BOXES, ...BOXES]; // Triple the boxes for seamless looping
+    const SHIFTS = [...BOXES, ...BOXES, ...BOXES];
 
     SHIFTS.forEach((BOX, index) => {
         const BOX_TL = gsap.timeline()
             .set(BOX, {
-                xPercent: 250,
-                rotateY: -50,
+                xPercent: 300, // Wider range for more pronounced movement
+                rotateY: -60, // More dramatic folding
                 opacity: 0,
-                scale: 0.5,
+                scale: 0.6,
             })
             // Opacity & Scale
             .to(BOX, {
                 opacity: 1,
                 scale: 1,
-                duration: 0.1,
+                duration: 0.2,
             }, 0)
             .to(BOX, {
                 opacity: 0,
-                scale: 0.5,
-                duration: 0.1,
-            }, 0.9)
+                scale: 0.6,
+                duration: 0.2,
+            }, 0.8)
             // Panning
             .fromTo(BOX, {
-                xPercent: 250,
+                xPercent: 300,
             }, {
-                xPercent: -350,
+                xPercent: -400,
                 duration: 1,
                 immediateRender: false,
                 ease: 'power1.inOut',
             }, 0)
             // Rotations
             .fromTo(BOX, {
-                rotateY: -50,
+                rotateY: -60,
             }, {
-                rotateY: 50,
+                rotateY: 60,
                 immediateRender: false,
                 duration: 1,
                 ease: 'power4.inOut',
             }, 0)
             // Scale & Z for center box
             .to(BOX, {
-                z: 100,
-                scale: 1.25,
-                duration: 0.1,
+                z: 150, // More elevation
+                scale: 1.5, // Larger center box
+                duration: 0.2,
                 repeat: 1,
                 yoyo: true,
             }, 0.4)
@@ -141,7 +142,7 @@ function initializeSeamlessLoop() {
             .fromTo(BOX, {
                 zIndex: 1,
             }, {
-                zIndex: BOXES.length,
+                zIndex: BOXES.length * 2, // Higher z-index for center
                 repeat: 1,
                 yoyo: true,
                 ease: 'none',
@@ -169,7 +170,6 @@ function initializeSeamlessLoop() {
 
     loopTimeline.play();
 
-    // Update lastBoxIndex based on the current position
     loopTimeline.vars.onUpdate = () => {
         const progress = loopTimeline.progress();
         lastBoxIndex = Math.floor(progress * BOXES.length) % BOXES.length;
@@ -185,7 +185,6 @@ function initializeInteractions() {
     const BOXES = gsap.utils.toArray(boxes);
     const totalBoxes = BOXES.length;
 
-    // Dragging
     Draggable.create(boxesContainer, {
         type: 'x',
         edgeResistance: 0.65,
@@ -256,7 +255,7 @@ function initializeInteractions() {
         if (loopTimeline) loopTimeline.pause();
 
         const spins = 2;
-        const spinDuration = 5;
+        const spinDuration = 8; // Increased duration for slower spin
         const currentProgress = loopTimeline.progress();
         const targetProgress = currentProgress + spins;
 
