@@ -5,6 +5,7 @@ require('dotenv').config();
 const { initDB } = require('./trackers/db');
 const express = require('express');
 const app = express();
+const fetch = require('node-fetch');
 
 // Health check endpoints
 app.get('/', (req, res) => {
@@ -69,6 +70,22 @@ for (const file of eventFiles) {
     console.error(`❌ Error loading event ${filePath}:`, error);
   }
 }
+
+
+
+// Self-ping every 2 minutes
+setInterval(async () => {
+  try {
+    const response = await fetch(`https://${process.env.WEBSITE_HOSTNAME}/ping`);
+    if (response.ok) {
+      console.log('✅ Self-ping successful');
+    } else {
+      console.warn('⚠️ Self-ping failed:', response.status);
+    }
+  } catch (error) {
+    console.error('❌ Self-ping error:', error);
+  }
+}, 120000); // 2 minutes
 
 // Bot ready
 client.once('ready', async () => {
