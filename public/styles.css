@@ -1,4 +1,4 @@
-/* Global styles */
+/* Reset default margins and ensure full viewport height */
 body {
   background-color: #1e1e1e;
   color: white;
@@ -12,17 +12,19 @@ body {
   overflow-x: hidden;
 }
 
+/* Main container for the page content */
 .page-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1600px; /* Increased from 1200px to widen the page */
-  padding: 40px 20px;
+  max-width: 1800px; /* Further increased to allow more width on large screens */
+  padding: 40px 10px; /* Reduced horizontal padding to maximize content width */
   box-sizing: border-box;
   min-height: 100vh;
 }
 
+/* Title styling */
 h1.title {
   font-size: 2.5em;
   margin-top: 20px;
@@ -30,6 +32,7 @@ h1.title {
   text-align: center;
 }
 
+/* Spin button styling */
 button.spin-button {
   background-color: #3498db;
   color: white;
@@ -47,22 +50,24 @@ button.spin-button:hover {
   background-color: #2980b9;
 }
 
-/* Box styles */
+/* Container for the seamless loop */
 .container {
   width: 100%;
   overflow: hidden;
   position: relative;
 }
 
+/* Seamless loop container */
 .boxes {
   display: flex;
   justify-content: flex-start;
-  width: 90vw; /* Increased from 80vw to use more horizontal space */
+  width: 95vw; /* Increased to use more viewport width */
   height: 60vh;
   position: relative;
   margin-bottom: 20px;
 }
 
+/* Individual box styling */
 .box {
   margin: 0 10px;
   width: 300px;
@@ -85,6 +90,7 @@ button.spin-button:hover {
   border-radius: 8px;
 }
 
+/* Winner box styling */
 .winner {
   border: 5px solid #ffd700;
   animation: glow 1s ease-in-out infinite alternate;
@@ -104,6 +110,7 @@ button.spin-button:hover {
   font-weight: bold;
 }
 
+/* Enlarged box styling */
 .box.enlarged {
   position: relative;
   z-index: 999;
@@ -113,6 +120,7 @@ button.spin-button:hover {
   transition: transform 0.3s ease, z-index 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Loading and error messages */
 .loading, .error {
   font-size: 1.2em;
   text-align: center;
@@ -138,7 +146,7 @@ button.spin-button:hover {
   }
 
   .boxes {
-      width: 95vw; /* Slightly wider on mobile to maximize space */
+      width: 98vw; /* Maximize width on mobile */
       height: 50vh;
   }
 
@@ -164,7 +172,7 @@ button.spin-button:hover {
   }
 
   .page-container {
-      padding: 20px 10px;
+      padding: 20px 5px; /* Reduced padding on mobile */
   }
 }
 
