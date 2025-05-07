@@ -48,6 +48,10 @@ button.spin-button {
   z-index: 300;
 }
 
+button.spin-button:hover {
+  background-color: #2980b9;
+}
+
 /* Container for the seamless loop */
 .container {
   width: 100%;
@@ -86,6 +90,7 @@ button.spin-button {
   transform-style: preserve-3d;
   background: #333;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Ensure the box has a background image for reflection */
@@ -139,22 +144,25 @@ button.spin-button {
 
 /* Winner box styling */
 .winner {
-  border: 5px solid #ffd700; /* Gold border around the art */
-  animation: glow 1s ease-in-out infinite alternate;
+  border: 6px solid #ffd700; /* Thicker gold border */
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 6px 12px rgba(0, 0, 0, 0.6); /* Enhanced glow and shadow */
+  border-radius: 10px; /* Slightly larger radius for a polished look */
 }
 
 .winner::before {
   content: 'Winner';
   position: absolute;
-  top: -40px; /* Position above the box */
+  top: -50px; /* Further above the box for better visibility */
   left: 50%;
   transform: translateX(-50%);
   background-color: #ffd700;
   color: #1e1e1e;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 1.2em;
+  padding: 8px 16px; /* Larger padding for a more prominent label */
+  border-radius: 6px;
+  font-size: 1.4em; /* Larger font size */
   font-weight: bold;
+  font-family: 'Arial', sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
   z-index: 3;
 }
 
@@ -174,15 +182,8 @@ button.spin-button {
   padding: 20px;
 }
 
-/* Glow animation for winner */
-@keyframes glow {
-  from {
-      box-shadow: 0 0 10px #ffd700;
-  }
-  to {
-      box-shadow: 0 0 20px #ffd700;
-  }
-}
+/* Glow animation for winner (removed since we're using a static glow via box-shadow) */
+/* If you want a pulsing effect, we can reintroduce this */
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -206,9 +207,9 @@ button.spin-button {
   }
 
   .winner::before {
-      font-size: 1em;
-      padding: 3px 8px;
-      top: -35px;
+      font-size: 1.2em;
+      padding: 6px 12px;
+      top: -45px;
   }
 
   button.spin-button {

@@ -159,9 +159,12 @@ function initializeSeamlessLoop() {
             duration: 1,
             ease: 'none',
             repeat: -1,
-            paused: true, // Keep paused initially
+            paused: true,
         }
     );
+
+    // Do not call loopTimeline.play() here to prevent initial spinning
+    loopTimeline.pause();
 
     loopTimeline.vars.onUpdate = () => {
         const progress = loopTimeline.progress();
@@ -178,7 +181,6 @@ function initializeInteractions() {
     const BOXES = gsap.utils.toArray(boxes);
     const totalBoxes = BOXES.length;
 
-    // Enable dragging to scroll through the loop
     Draggable.create(boxesContainer, {
         type: 'x',
         edgeResistance: 0.65,
@@ -189,8 +191,7 @@ function initializeInteractions() {
             lastBoxIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
         },
         onDragEnd: function() {
-            // Ensure the loop stays paused after dragging
-            loopTimeline.pause();
+            loopTimeline.pause(); // Ensure the loop stays paused after dragging
         }
     });
 
@@ -204,7 +205,7 @@ function initializeInteractions() {
             });
             if (!isEnlarged) {
                 box.classList.add('enlarged');
-                if (loopTimeline) loopTimeline.pause();
+                loopTimeline.pause();
 
                 const originalIndex = parseInt(box.dataset.index);
                 const targetProgress = (originalIndex + 0.5) / totalBoxes;
@@ -224,7 +225,7 @@ function initializeInteractions() {
                 });
             } else {
                 gsap.to(box, { scale: 1, duration: 0.3, ease: 'power2.out' });
-                if (loopTimeline) loopTimeline.pause(); // Keep paused after closing
+                loopTimeline.pause();
             }
         });
     });
@@ -235,7 +236,7 @@ function initializeInteractions() {
                 b.classList.remove('enlarged', 'winner');
                 gsap.to(b, { scale: 1, duration: 0.3, ease: 'power2.out' });
             });
-            if (loopTimeline) loopTimeline.pause(); // Keep paused
+            loopTimeline.pause();
         }
     });
 
@@ -250,7 +251,7 @@ function initializeInteractions() {
             gsap.to(box, { scale: 1, duration: 0.3, ease: 'power2.out' });
         });
 
-        if (loopTimeline) loopTimeline.pause();
+        loopTimeline.pause();
 
         const spins = 3;
         const spinDuration = 8;
