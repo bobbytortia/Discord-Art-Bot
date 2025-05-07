@@ -196,7 +196,7 @@ function initializeInteractions() {
     if (boxes.length === 0) return;
 
     const boxWidth = boxes[0].offsetWidth + 20;
-    const totalBoxes = boxes.length; // No longer doubled
+    const totalBoxes = boxes.length;
 
     Draggable.create(boxesContainer, {
         type: 'x',
@@ -270,20 +270,22 @@ function initializeInteractions() {
 
         const spins = 2;
         const spinDuration = 5;
-        const targetIndex = (lastBoxIndex + spins * totalBoxes) % totalBoxes;
+        const currentProgress = loopTimeline.progress();
+        const targetProgress = currentProgress + spins; // Spin forward by 2 full cycles
 
-        loopTimeline.toIndex(targetIndex, {
+        gsap.to(loopTimeline, {
+            progress: targetProgress,
             duration: spinDuration,
             ease: 'power2.inOut',
             onComplete: () => {
+                // Snap to the nearest box
                 const winnerIndex = loopTimeline.current();
-                const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
-                winnerBox.classList.add('winner', 'enlarged');
-
                 loopTimeline.toIndex(winnerIndex, {
                     duration: 0.5,
-                    ease: 'power2.out',
+                    ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
+                        const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
+                        winnerBox.classList.add('winner', 'enlarged');
                         const scale = window.innerWidth <= 768 ? (window.innerHeight <= 600 ? 1.2 : 1.5) : 2;
                         gsap.to(winnerBox, {
                             scale: scale,
