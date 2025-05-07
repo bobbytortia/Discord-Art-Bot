@@ -3,13 +3,15 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 const { initDB } = require('./trackers/db');
-require('./keepAlive');
 const express = require('express');
 const app = express();
 
-// Add a simple health check route
+// Health check endpoints
+app.get('/', (req, res) => {
+  res.status(200).send('Bot is running!');
+});
 app.get('/ping', (req, res) => {
-  res.send('Bot is active!');
+  res.status(200).send('Bot is active!');
 });
 
 const PORT = process.env.PORT || 3000;
@@ -37,12 +39,16 @@ function getAllCommandFiles(dirPath, arrayOfFiles = []) {
 
 const commandFiles = getAllCommandFiles(commandsPath);
 for (const filePath of commandFiles) {
-  const command = require(filePath);
-  if (command.data && command.execute) {
-    client.commands.set(command.data.name, command);
-    console.log(`✅ Loaded command: ${command.data.name}`);
-  } else {
-    console.warn(`⚠️ Skipping invalid command file: ${filePath}`);
+  try {
+    const command = require(filePath);
+    if (command.data && command.execute) {
+      client.commands.set(command.data.name, command);
+      console.log(`✅ Loaded command: ${command.data.name}`);
+    } else {
+      console.warn(`⚠️ Skipping invalid command file: ${filePath}`);
+    }
+  } catch (error) {
+    console.error(`❌ Error loading command ${filePath}:`, error);
   }
 }
 
@@ -52,18 +58,29 @@ const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'
 
 for (const file of eventFiles) {
   const filePath = path.join(eventsPath, file);
-  const event = require(filePath);
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args, client));
-  } else {
-    client.on(event.name, (...args) => event.execute(...args, client));
+  try {
+    const event = require(filePath);
+    if (event.once) {
+      client.once(event.name, (...args) => event.execute(...args, client));
+    } else {
+      client.on(event.name, (...args) => event.execute(...args, client));
+    }
+  } catch (error) {
+    console.error(`❌ Error loading event ${filePath}:`, error);
   }
 }
 
 // Bot ready
 client.once('ready', async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
-  await initDB(); // DB setup
+  try {
+    await initDB(); // DB setup
+    console.log('✅ Database initialized');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+  }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN).catch(error => {
+  console.error('❌ Failed to login to Discord:', error);
+});
