@@ -159,11 +159,9 @@ function initializeSeamlessLoop() {
             duration: 1,
             ease: 'none',
             repeat: -1,
-            paused: true,
+            paused: true, // Keep paused initially
         }
     );
-
-    loopTimeline.play();
 
     loopTimeline.vars.onUpdate = () => {
         const progress = loopTimeline.progress();
@@ -180,6 +178,7 @@ function initializeInteractions() {
     const BOXES = gsap.utils.toArray(boxes);
     const totalBoxes = BOXES.length;
 
+    // Enable dragging to scroll through the loop
     Draggable.create(boxesContainer, {
         type: 'x',
         edgeResistance: 0.65,
@@ -188,6 +187,10 @@ function initializeInteractions() {
             const progress = -this.x / (totalBoxes * (boxes[0].offsetWidth + 20));
             loopTimeline.progress(progress % 1);
             lastBoxIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
+        },
+        onDragEnd: function() {
+            // Ensure the loop stays paused after dragging
+            loopTimeline.pause();
         }
     });
 
@@ -204,7 +207,7 @@ function initializeInteractions() {
                 if (loopTimeline) loopTimeline.pause();
 
                 const originalIndex = parseInt(box.dataset.index);
-                const targetProgress = (originalIndex + 0.5) / totalBoxes; // Center the box
+                const targetProgress = (originalIndex + 0.5) / totalBoxes;
                 gsap.to(loopTimeline, {
                     progress: targetProgress,
                     duration: 0.5,
@@ -221,7 +224,7 @@ function initializeInteractions() {
                 });
             } else {
                 gsap.to(box, { scale: 1, duration: 0.3, ease: 'power2.out' });
-                if (loopTimeline) loopTimeline.play();
+                if (loopTimeline) loopTimeline.pause(); // Keep paused after closing
             }
         });
     });
@@ -232,7 +235,7 @@ function initializeInteractions() {
                 b.classList.remove('enlarged', 'winner');
                 gsap.to(b, { scale: 1, duration: 0.3, ease: 'power2.out' });
             });
-            if (loopTimeline) loopTimeline.play();
+            if (loopTimeline) loopTimeline.pause(); // Keep paused
         }
     });
 
@@ -249,21 +252,16 @@ function initializeInteractions() {
 
         if (loopTimeline) loopTimeline.pause();
 
-        const spins = 3; // Number of full cycles before landing
+        const spins = 3;
         const spinDuration = 8;
         const currentProgress = loopTimeline.progress();
 
-        // Randomly select the winner upfront
         const winnerIndex = Math.floor(Math.random() * totalBoxes);
         const winnerBox = BOXES[winnerIndex];
 
-        // Calculate the target progress to land on the winner in the middle
-        // Each box's animation cycle is STAGGER long, and the middle is at 0.5 of that cycle
-        // The winner's animation starts at (winnerIndex * STAGGER), and we want it at the midpoint
         const STAGGER = 0.2;
         const winnerCycleStart = winnerIndex * STAGGER;
         const winnerMiddleProgress = (winnerCycleStart + (STAGGER * 0.5)) / (STAGGER * totalBoxes);
-        // Add full cycles to ensure spinning
         const fullCycles = Math.floor(currentProgress) + spins;
         const targetProgress = fullCycles + winnerMiddleProgress;
 
@@ -275,7 +273,6 @@ function initializeInteractions() {
                 loopTimeline.progress(loopTimeline.progress() % 1);
             },
             onComplete: () => {
-                // Ensure the winner is exactly in the middle
                 const finalProgress = winnerMiddleProgress % 1;
                 gsap.to(loopTimeline, {
                     progress: finalProgress,

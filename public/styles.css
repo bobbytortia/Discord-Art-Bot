@@ -84,7 +84,7 @@ button.spin-button {
   min-height: 200px;
   display: none;
   transform-style: preserve-3d;
-  background: #333; /* Fallback background */
+  background: #333;
   border-radius: 8px;
 }
 
@@ -107,7 +107,7 @@ button.spin-button {
 
   .box::after,
   .box::before {
-      display: none; /* Hide fallback if -webkit-box-reflect is supported */
+      display: none;
   }
 }
 
@@ -139,14 +139,14 @@ button.spin-button {
 
 /* Winner box styling */
 .winner {
-  border: 5px solid #ffd700;
+  border: 5px solid #ffd700; /* Gold border around the art */
   animation: glow 1s ease-in-out infinite alternate;
 }
 
 .winner::before {
   content: 'Winner';
   position: absolute;
-  top: -30px;
+  top: -40px; /* Position above the box */
   left: 50%;
   transform: translateX(-50%);
   background-color: #ffd700;
@@ -208,7 +208,7 @@ button.spin-button {
   .winner::before {
       font-size: 1em;
       padding: 3px 8px;
-      top: -25px;
+      top: -35px;
   }
 
   button.spin-button {
