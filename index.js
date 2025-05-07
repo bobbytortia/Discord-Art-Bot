@@ -76,7 +76,7 @@ for (const file of eventFiles) {
 // Self-ping every 2 minutes
 setInterval(async () => {
   try {
-    const response = await fetch(`https://${process.env.WEBSITE_HOSTNAME}/ping`);
+    const response = await fetch(`https://${process.env.APP_HOSTNAME}/ping`);
     if (response.ok) {
       console.log('✅ Self-ping successful');
     } else {
