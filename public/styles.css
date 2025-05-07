@@ -9,7 +9,7 @@ body {
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-x: hidden;
 }
 
 .page-container {
@@ -17,10 +17,10 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1600px; /* Increased from 1200px to widen the page */
   padding: 40px 20px;
   box-sizing: border-box;
-  min-height: 100vh; /* Ensure container takes full height */
+  min-height: 100vh;
 }
 
 h1.title {
@@ -40,7 +40,7 @@ button.spin-button {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-top: 30px;
-  margin-bottom: 20px; /* Added spacing below button */
+  margin-bottom: 20px;
 }
 
 button.spin-button:hover {
@@ -57,10 +57,10 @@ button.spin-button:hover {
 .boxes {
   display: flex;
   justify-content: flex-start;
-  width: 80vw;
+  width: 90vw; /* Increased from 80vw to use more horizontal space */
   height: 60vh;
   position: relative;
-  margin-bottom: 20px; /* Added spacing to prevent cutoff */
+  margin-bottom: 20px;
 }
 
 .box {
@@ -105,7 +105,7 @@ button.spin-button:hover {
 }
 
 .box.enlarged {
-  position: relative; /* Changed from absolute to keep in flow */
+  position: relative;
   z-index: 999;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
   border: 2px solid #ffffff;
@@ -138,7 +138,7 @@ button.spin-button:hover {
   }
 
   .boxes {
-      width: 90vw;
+      width: 95vw; /* Slightly wider on mobile to maximize space */
       height: 50vh;
   }
 
@@ -168,15 +168,14 @@ button.spin-button:hover {
   }
 }
 
-/* Ensure enlarged box fits on smaller screens */
 @media (max-height: 800px) {
   .box.enlarged {
-      transform: scale(1.5); /* Reduce scale if viewport height is too small */
+      transform: scale(1.5);
   }
 }
 
 @media (max-height: 600px) {
   .box.enlarged {
-      transform: scale(1.2); /* Further reduce for very small heights */
+      transform: scale(1.2);
   }
 }
