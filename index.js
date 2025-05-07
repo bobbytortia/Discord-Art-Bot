@@ -4,6 +4,18 @@ const path = require('path');
 require('dotenv').config();
 const { initDB } = require('./trackers/db');
 require('./keepAlive');
+const express = require('express');
+const app = express();
+
+// Add a simple health check route
+app.get('/ping', (req, res) => {
+  res.send('Bot is active!');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Web server listening on port ${PORT}`);
+});
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
