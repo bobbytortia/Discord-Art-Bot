@@ -9,8 +9,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 gsap.registerPlugin(Draggable, ScrollTrigger);
 
-let loopTimeline;
+let initialLoopTimeline;
+let spinLoopTimeline;
 let lastBoxIndex = 0;
+let currentProgress = 0; // Track the current progress for dragging
 
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
@@ -85,8 +87,8 @@ function initializeSeamlessLoop() {
     const OFFSET = 0;
     const BOXES = gsap.utils.toArray(boxes);
 
-    const LOOP = gsap.timeline({
-        paused: true,
+    // Initial Loop: Visual animations without spinning
+    const INITIAL_LOOP = gsap.timeline({
         repeat: -1,
         ease: 'none',
     });
@@ -111,14 +113,6 @@ function initializeSeamlessLoop() {
                 scale: 0.6,
                 duration: 0.2,
             }, 0.8)
-            .fromTo(BOX, {
-                xPercent: 300,
-            }, {
-                xPercent: -400,
-                duration: 1,
-                immediateRender: false,
-                ease: 'power1.inOut',
-            }, 0)
             .fromTo(BOX, {
                 rotateY: -60,
             }, {
@@ -145,14 +139,38 @@ function initializeSeamlessLoop() {
                 immediateRender: false,
             }, 0);
 
-        LOOP.add(BOX_TL, index * STAGGER);
+        INITIAL_LOOP.add(BOX_TL, index * STAGGER);
+    });
+
+    initialLoopTimeline = INITIAL_LOOP;
+    initialLoopTimeline.play(); // Play the visual animations
+
+    // Spin Loop: Handles the spinning motion
+    const SPIN_LOOP = gsap.timeline({
+        paused: true,
+        repeat: -1,
+        ease: 'none',
+    });
+
+    SHIFTS.forEach((BOX, index) => {
+        const BOX_TL = gsap.timeline()
+            .fromTo(BOX, {
+                xPercent: 300,
+            }, {
+                xPercent: -400,
+                duration: 1,
+                immediateRender: false,
+                ease: 'power1.inOut',
+            }, 0);
+
+        SPIN_LOOP.add(BOX_TL, index * STAGGER);
     });
 
     const CYCLE_DURATION = STAGGER * BOXES.length;
     const START_TIME = CYCLE_DURATION + DURATION * 0.5 + OFFSET;
 
-    loopTimeline = gsap.fromTo(
-        LOOP,
+    spinLoopTimeline = gsap.fromTo(
+        SPIN_LOOP,
         { totalTime: START_TIME },
         {
             totalTime: `+=${CYCLE_DURATION}`,
@@ -163,12 +181,10 @@ function initializeSeamlessLoop() {
         }
     );
 
-    // Do not call loopTimeline.play() here to prevent initial spinning
-    loopTimeline.pause();
-
-    loopTimeline.vars.onUpdate = () => {
-        const progress = loopTimeline.progress();
+    spinLoopTimeline.vars.onUpdate = () => {
+        const progress = spinLoopTimeline.progress();
         lastBoxIndex = Math.floor(progress * BOXES.length) % BOXES.length;
+        currentProgress = progress; // Update current progress
     };
 }
 
@@ -187,11 +203,12 @@ function initializeInteractions() {
         inertia: true,
         onDrag: function() {
             const progress = -this.x / (totalBoxes * (boxes[0].offsetWidth + 20));
-            loopTimeline.progress(progress % 1);
-            lastBoxIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
+            spinLoopTimeline.progress(progress % 1);
+            currentProgress = spinLoopTimeline.progress();
+            lastBoxIndex = Math.floor(currentProgress * totalBoxes) % totalBoxes;
         },
         onDragEnd: function() {
-            loopTimeline.pause(); // Ensure the loop stays paused after dragging
+            spinLoopTimeline.pause();
         }
     });
 
@@ -205,11 +222,11 @@ function initializeInteractions() {
             });
             if (!isEnlarged) {
                 box.classList.add('enlarged');
-                loopTimeline.pause();
+                spinLoopTimeline.pause();
 
                 const originalIndex = parseInt(box.dataset.index);
                 const targetProgress = (originalIndex + 0.5) / totalBoxes;
-                gsap.to(loopTimeline, {
+                gsap.to(spinLoopTimeline, {
                     progress: targetProgress,
                     duration: 0.5,
                     ease: 'power2.out',
@@ -221,11 +238,12 @@ function initializeInteractions() {
                             ease: 'elastic.out(1, 0.5)'
                         });
                         lastBoxIndex = originalIndex;
+                        currentProgress = targetProgress;
                     }
                 });
             } else {
                 gsap.to(box, { scale: 1, duration: 0.3, ease: 'power2.out' });
-                loopTimeline.pause();
+                spinLoopTimeline.pause();
             }
         });
     });
@@ -236,7 +254,7 @@ function initializeInteractions() {
                 b.classList.remove('enlarged', 'winner');
                 gsap.to(b, { scale: 1, duration: 0.3, ease: 'power2.out' });
             });
-            loopTimeline.pause();
+            spinLoopTimeline.pause();
         }
     });
 
@@ -251,35 +269,42 @@ function initializeInteractions() {
             gsap.to(box, { scale: 1, duration: 0.3, ease: 'power2.out' });
         });
 
-        loopTimeline.pause();
+        spinLoopTimeline.pause();
 
         const spins = 3;
         const spinDuration = 8;
-        const currentProgress = loopTimeline.progress();
 
         const winnerIndex = Math.floor(Math.random() * totalBoxes);
         const winnerBox = BOXES[winnerIndex];
 
         const STAGGER = 0.2;
         const winnerCycleStart = winnerIndex * STAGGER;
+        // Adjust the progress to land where rotateY is 0 (middle of the animation)
         const winnerMiddleProgress = (winnerCycleStart + (STAGGER * 0.5)) / (STAGGER * totalBoxes);
         const fullCycles = Math.floor(currentProgress) + spins;
         const targetProgress = fullCycles + winnerMiddleProgress;
 
-        gsap.to(loopTimeline, {
+        gsap.to(spinLoopTimeline, {
             progress: targetProgress,
             duration: spinDuration,
             ease: 'power2.inOut',
             onUpdate: () => {
-                loopTimeline.progress(loopTimeline.progress() % 1);
+                spinLoopTimeline.progress(spinLoopTimeline.progress() % 1);
+                currentProgress = spinLoopTimeline.progress();
             },
             onComplete: () => {
                 const finalProgress = winnerMiddleProgress % 1;
-                gsap.to(loopTimeline, {
+                gsap.to(spinLoopTimeline, {
                     progress: finalProgress,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
+                        // Ensure the winner box is at rotateY: 0
+                        gsap.to(winnerBox, {
+                            rotateY: 0,
+                            duration: 0.3,
+                            ease: 'power2.out'
+                        });
                         winnerBox.classList.add('winner', 'enlarged');
                         const scale = window.innerWidth <= 768 ? (window.innerHeight <= 600 ? 1.2 : 1.5) : 2;
                         gsap.to(winnerBox, {
@@ -288,6 +313,7 @@ function initializeInteractions() {
                             ease: 'elastic.out(1, 0.5)'
                         });
                         lastBoxIndex = winnerIndex;
+                        currentProgress = finalProgress;
                     }
                 });
             }
