@@ -17,14 +17,14 @@ body {
   align-items: center;
   width: 100%;
   max-width: 1200px;
-  padding: 20px;
+  padding: 40px 20px; /* Increased padding for enlarged box */
   box-sizing: border-box;
 }
 
 h1.title {
   font-size: 2.5em;
   margin-top: 20px;
-  margin-bottom: 40px;
+  margin-bottom: 60px; /* Increased to prevent clipping */
   text-align: center;
 }
 
@@ -37,7 +37,7 @@ button.spin-button {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 20px;
+  margin-top: 30px; /* Increased spacing */
 }
 
 button.spin-button:hover {
@@ -48,6 +48,7 @@ button.spin-button:hover {
 .container {
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .boxes {
@@ -81,7 +82,7 @@ button.spin-button:hover {
 }
 
 .winner {
-  border: 5px solid #ffd700; /* Golden border */
+  border: 5px solid #ffd700;
   animation: glow 1s ease-in-out infinite alternate;
 }
 
@@ -100,9 +101,13 @@ button.spin-button:hover {
 }
 
 .box.enlarged {
-  transform: scale(1.5);
+  transform: scale(2); /* Increased scale */
+  position: absolute;
   z-index: 999;
-  transition: transform 0.3s ease, z-index 0.3s ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7); /* Enhanced shadow */
+  border: 2px solid #ffffff; /* Subtle white border */
+  border-radius: 12px;
+  transition: transform 0.3s ease, z-index 0.3s ease, box-shadow 0.3s ease;
 }
 
 .loading, .error {
@@ -126,7 +131,7 @@ button.spin-button:hover {
 @media (max-width: 768px) {
   h1.title {
       font-size: 2em;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
   }
 
   .boxes {
@@ -138,6 +143,11 @@ button.spin-button:hover {
       width: 200px;
       height: 300px;
       margin: 0 5px;
+  }
+
+  .box.enlarged {
+      transform: scale(1.5); /* Reduced scale for mobile */
+      border: 1px solid #ffffff; /* Thinner border */
   }
 
   .winner::before {
@@ -152,6 +162,6 @@ button.spin-button:hover {
   }
 
   .page-container {
-      padding: 10px;
+      padding: 20px 10px;
   }
 }

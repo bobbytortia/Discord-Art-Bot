@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 gsap.registerPlugin(Draggable, ScrollTrigger);
 
-let loopTimeline; // Store the seamless loop timeline globally
+let loopTimeline;
 
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
@@ -45,7 +45,6 @@ async function loadSubmissions() {
             fragment.appendChild(box);
         });
 
-        // Duplicate boxes for seamless loop
         fragment.appendChild(fragment.cloneNode(true));
         boxesContainer.appendChild(fragment);
 
@@ -101,28 +100,40 @@ function initializeInteractions() {
 
     boxes.forEach(box => {
         box.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent triggering document click
+            e.stopPropagation();
             const isEnlarged = box.classList.contains('enlarged');
             boxes.forEach(b => {
                 b.classList.remove('enlarged', 'winner');
-                b.style.zIndex = ''; // Reset z-index
+                gsap.to(b, { x: 0, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
             });
             if (!isEnlarged) {
                 box.classList.add('enlarged');
-                box.style.zIndex = '999';
+                // Center the box in viewport
+                const rect = box.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const centerX = (viewportWidth - rect.width * 2) / 2 - rect.left; // Scale is 2
+                const centerY = (viewportHeight - rect.height * 2) / 2 - rect.top;
+                gsap.to(box, {
+                    x: centerX,
+                    y: centerY,
+                    scale: window.innerWidth <= 768 ? 1.5 : 2, // Match CSS scale
+                    duration: 0.5,
+                    ease: 'elastic.out(1, 0.5)'
+                });
                 if (loopTimeline) loopTimeline.pause();
             } else {
+                gsap.to(box, { x: 0, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
                 if (loopTimeline) loopTimeline.play();
             }
         });
     });
 
-    // Handle deselection on clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.box') && !e.target.classList.contains('spin-button')) {
             boxes.forEach(b => {
                 b.classList.remove('enlarged', 'winner');
-                b.style.zIndex = '';
+                gsap.to(b, { x: 0, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
             });
             if (loopTimeline) loopTimeline.play();
         }
@@ -136,7 +147,7 @@ function initializeInteractions() {
 
         boxes.forEach(box => {
             box.classList.remove('winner', 'enlarged');
-            box.style.zIndex = '';
+            gsap.to(box, { x: 0, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
         });
 
         if (loopTimeline) loopTimeline.pause();
@@ -161,8 +172,21 @@ function initializeInteractions() {
                         const winnerIndex = Math.abs(Math.round(snapX / boxWidth)) % totalBoxes;
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
-                        winnerBox.style.zIndex = '999';
-                        // Center the winner
+                        // Center the winner in viewport
+                        const rect = winnerBox.getBoundingClientRect();
+                        const viewportWidth = window.innerWidth;
+                        const viewportHeight = window.innerHeight;
+                        const scale = viewportWidth <= 768 ? 1.5 : 2;
+                        const centerX = (viewportWidth - rect.width * scale) / 2 - rect.left;
+                        const centerY = (viewportHeight - rect.height * scale) / 2 - rect.top;
+                        gsap.to(winnerBox, {
+                            x: centerX,
+                            y: centerY,
+                            scale: scale,
+                            duration: 0.5,
+                            ease: 'elastic.out(1, 0.5)'
+                        });
+                        // Center the container to show the winner
                         const winnerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
                         gsap.to(boxesContainer, {
                             x: winnerX,
