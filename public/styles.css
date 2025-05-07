@@ -5,9 +5,8 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  display: grid;
+  place-items: center;
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
@@ -23,6 +22,7 @@ body {
   padding: 40px 10px;
   box-sizing: border-box;
   min-height: 100vh;
+  position: relative;
 }
 
 /* Title styling */
@@ -44,7 +44,8 @@ button.spin-button {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-top: 30px;
-  margin-bottom: 80px; /* Further increased to push .boxes down */
+  margin-bottom: 80px;
+  z-index: 300;
 }
 
 /* Container for the seamless loop */
@@ -54,42 +55,78 @@ button.spin-button {
   position: relative;
   display: flex;
   justify-content: center;
+  transform-style: preserve-3d;
+  perspective: 800px;
 }
 
 /* Seamless loop container */
 .boxes {
   display: flex;
   justify-content: flex-start;
-  width: 95vw;
+  width: 100%;
   height: 60vh;
   position: relative;
-  margin-top: 120px; /* Further increased to ensure no clipping */
+  margin-top: 120px;
   margin-bottom: 40px;
   margin-left: auto;
   margin-right: auto;
+  touch-action: none;
 }
 
 /* Individual box styling */
 .box {
-  margin: 0 10px;
-  width: 300px;
-  height: 400px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #333;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s ease, z-index 0.3s ease;
-  flex-shrink: 0;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20vmin;
+  height: 20vmin;
+  min-width: 200px;
+  min-height: 200px;
+  display: none; /* Controlled by JS */
+  transform-style: preserve-3d;
 }
 
 .box img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 8px;
+}
+
+/* Reflection effect */
+@supports (-webkit-box-reflect: below) {
+  .box {
+      -webkit-box-reflect: below 0.5vmin linear-gradient(transparent 0 50%, white 100%);
+  }
+}
+
+/* Fallback for browsers that don't support -webkit-box-reflect */
+.box::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background-image: inherit;
+  background-size: cover;
+  transform: translate(-50%, -50%) rotate(180deg) translate(0, -100%) translate(0, -0.5vmin);
+  opacity: 0.75;
+}
+
+.box::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(#1e1e1e 50%, transparent);
+  transform: translate(-50%, -50%) rotate(180deg) translate(0, -100%) translate(0, -0.5vmin) scale(1.01);
+  z-index: 2;
 }
 
 /* Winner box styling */
@@ -110,16 +147,15 @@ button.spin-button {
   border-radius: 5px;
   font-size: 1.2em;
   font-weight: bold;
+  z-index: 3;
 }
 
 /* Enlarged box styling */
 .box.enlarged {
-  position: relative;
   z-index: 999;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
   border: 2px solid #ffffff;
   border-radius: 12px;
-  transition: transform 0.3s ease, z-index 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Loading and error messages */
@@ -150,18 +186,15 @@ button.spin-button {
   .boxes {
       width: 98vw;
       height: 50vh;
-      margin-top: 60px; /* Adjusted for mobile */
+      margin-top: 60px;
       margin-bottom: 20px;
   }
 
   .box {
-      width: 200px;
-      height: 300px;
-      margin: 0 5px;
-  }
-
-  .box.enlarged {
-      border: 1px solid #ffffff;
+      width: 15vmin;
+      height: 15vmin;
+      min-width: 150px;
+      min-height: 150px;
   }
 
   .winner::before {

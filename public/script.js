@@ -12,106 +12,6 @@ gsap.registerPlugin(Draggable, ScrollTrigger);
 let loopTimeline;
 let lastBoxIndex = 0;
 
-function horizontalLoop(items, config) {
-  items = gsap.utils.toArray(items);
-  config = config || {};
-  let tl = gsap.timeline({
-      repeat: config.repeat,
-      paused: config.paused,
-      defaults: { ease: "none" },
-      onReverseComplete: () => tl.totalTime(tl.rawTime() + tl.duration() * 100),
-    }),
-    length = items.length,
-    startX = items[0].offsetLeft,
-    times = [],
-    widths = [],
-    xPercents = [],
-    curIndex = 0,
-    pixelsPerSecond = (config.speed || 1) * 100,
-    snap = config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1),
-    totalWidth,
-    curX,
-    distanceToStart,
-    distanceToLoop,
-    item,
-    i;
-  gsap.set(items, {
-    xPercent: (i, el) => {
-      let w = (widths[i] = parseFloat(gsap.getProperty(el, "width", "px")));
-      xPercents[i] = snap(
-        (parseFloat(gsap.getProperty(el, "x", "px")) / w) * 100 +
-          gsap.getProperty(el, "xPercent")
-      );
-      return xPercents[i];
-    },
-  });
-  gsap.set(items, { x: 0 });
-  totalWidth =
-    items[length - 1].offsetLeft +
-    (xPercents[length - 1] / 100) * widths[length - 1] -
-    startX +
-    items[length - 1].offsetWidth *
-      gsap.getProperty(items[length - 1], "scaleX") +
-    (parseFloat(config.paddingRight) || 0);
-  for (i = 0; i < length; i++) {
-    item = items[i];
-    curX = (xPercents[i] / 100) * widths[i];
-    distanceToStart = item.offsetLeft + curX - startX;
-    distanceToLoop =
-      distanceToStart + widths[i] * gsap.getProperty(item, "scaleX");
-    tl.to(
-      item,
-      {
-        xPercent: snap(((curX - distanceToLoop) / widths[i]) * 100),
-        duration: distanceToLoop / pixelsPerSecond,
-      },
-      0
-    )
-      .fromTo(
-        item,
-        {
-          xPercent: snap(
-            ((curX - distanceToLoop + totalWidth) / widths[i]) * 100
-          ),
-        },
-        {
-          xPercent: xPercents[i],
-          duration:
-            (curX - distanceToLoop + totalWidth - curX) / pixelsPerSecond,
-          immediateRender: false,
-        },
-        distanceToLoop / pixelsPerSecond
-      )
-      .add("label" + i, distanceToStart / pixelsPerSecond);
-    times[i] = distanceToStart / pixelsPerSecond;
-  }
-  function toIndex(index, vars) {
-    vars = vars || {};
-    Math.abs(index - curIndex) > length / 2 &&
-      (index += index > curIndex ? -length : length);
-    let newIndex = gsap.utils.wrap(0, length, index),
-      time = times[newIndex];
-    if (time > tl.time() !== index > curIndex) {
-      vars.modifiers = { time: gsap.utils.wrap(0, tl.duration()) };
-      time += tl.duration() * (index > curIndex ? 1 : -1);
-    }
-    curIndex = newIndex;
-    vars.overwrite = true;
-    return tl.tweenTo(time, vars);
-  }
-  tl.next = (vars) => toIndex(curIndex + 1, vars);
-  tl.previous = (vars) => toIndex(curIndex - 1, vars);
-  tl.current = () => curIndex;
-  tl.toIndex = (index, vars) => toIndex(index, vars);
-  tl.times = times;
-  tl.progress(1, true).progress(0, true);
-  if (config.reversed) {
-    tl.vars.onReverseComplete();
-    tl.reverse();
-  }
-  return tl;
-}
-
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
     boxesContainer.innerHTML = '<div class="loading">Loading art submissions...</div>';
@@ -177,15 +77,102 @@ function initializeSeamlessLoop() {
     const boxes = document.querySelectorAll('.box');
     if (boxes.length === 0) return;
 
-    loopTimeline = horizontalLoop(boxes, {
+    gsap.set(boxes, { display: 'block', yPercent: -50 });
+
+    const STAGGER = 0.1;
+    const DURATION = 1;
+    const OFFSET = 0;
+    const BOXES = gsap.utils.toArray(boxes);
+
+    const LOOP = gsap.timeline({
+        paused: true,
         repeat: -1,
-        speed: 1,
-        paddingRight: 20,
-        paused: false
+        ease: 'none',
     });
 
+    const SHIFTS = [...BOXES, ...BOXES, ...BOXES]; // Triple the boxes for seamless looping
+
+    SHIFTS.forEach((BOX, index) => {
+        const BOX_TL = gsap.timeline()
+            .set(BOX, {
+                xPercent: 250,
+                rotateY: -50,
+                opacity: 0,
+                scale: 0.5,
+            })
+            // Opacity & Scale
+            .to(BOX, {
+                opacity: 1,
+                scale: 1,
+                duration: 0.1,
+            }, 0)
+            .to(BOX, {
+                opacity: 0,
+                scale: 0.5,
+                duration: 0.1,
+            }, 0.9)
+            // Panning
+            .fromTo(BOX, {
+                xPercent: 250,
+            }, {
+                xPercent: -350,
+                duration: 1,
+                immediateRender: false,
+                ease: 'power1.inOut',
+            }, 0)
+            // Rotations
+            .fromTo(BOX, {
+                rotateY: -50,
+            }, {
+                rotateY: 50,
+                immediateRender: false,
+                duration: 1,
+                ease: 'power4.inOut',
+            }, 0)
+            // Scale & Z for center box
+            .to(BOX, {
+                z: 100,
+                scale: 1.25,
+                duration: 0.1,
+                repeat: 1,
+                yoyo: true,
+            }, 0.4)
+            // Z-index
+            .fromTo(BOX, {
+                zIndex: 1,
+            }, {
+                zIndex: BOXES.length,
+                repeat: 1,
+                yoyo: true,
+                ease: 'none',
+                duration: 0.5,
+                immediateRender: false,
+            }, 0);
+
+        LOOP.add(BOX_TL, index * STAGGER);
+    });
+
+    const CYCLE_DURATION = STAGGER * BOXES.length;
+    const START_TIME = CYCLE_DURATION + DURATION * 0.5 + OFFSET;
+
+    loopTimeline = gsap.fromTo(
+        LOOP,
+        { totalTime: START_TIME },
+        {
+            totalTime: `+=${CYCLE_DURATION}`,
+            duration: 1,
+            ease: 'none',
+            repeat: -1,
+            paused: true,
+        }
+    );
+
+    loopTimeline.play();
+
+    // Update lastBoxIndex based on the current position
     loopTimeline.vars.onUpdate = () => {
-        lastBoxIndex = loopTimeline.current();
+        const progress = loopTimeline.progress();
+        lastBoxIndex = Math.floor(progress * BOXES.length) % BOXES.length;
     };
 }
 
@@ -195,20 +182,18 @@ function initializeInteractions() {
 
     if (boxes.length === 0) return;
 
-    const boxWidth = boxes[0].offsetWidth + 20;
-    const totalBoxes = boxes.length;
+    const BOXES = gsap.utils.toArray(boxes);
+    const totalBoxes = BOXES.length;
 
+    // Dragging
     Draggable.create(boxesContainer, {
         type: 'x',
         edgeResistance: 0.65,
         inertia: true,
-        snap: {
-            x: x => Math.round(x / boxWidth) * boxWidth
-        },
         onDrag: function() {
-            const progress = -this.x / (totalBoxes * boxWidth);
+            const progress = -this.x / (totalBoxes * (boxes[0].offsetWidth + 20));
             loopTimeline.progress(progress % 1);
-            lastBoxIndex = loopTimeline.current();
+            lastBoxIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
         }
     });
 
@@ -225,7 +210,9 @@ function initializeInteractions() {
                 if (loopTimeline) loopTimeline.pause();
 
                 const originalIndex = parseInt(box.dataset.index);
-                loopTimeline.toIndex(originalIndex, {
+                const targetProgress = originalIndex / totalBoxes;
+                gsap.to(loopTimeline, {
+                    progress: targetProgress,
                     duration: 0.5,
                     ease: 'power2.out',
                     onComplete: () => {
@@ -271,20 +258,24 @@ function initializeInteractions() {
         const spins = 2;
         const spinDuration = 5;
         const currentProgress = loopTimeline.progress();
-        const targetProgress = currentProgress + spins; // Spin forward by 2 full cycles
+        const targetProgress = currentProgress + spins;
 
         gsap.to(loopTimeline, {
             progress: targetProgress,
             duration: spinDuration,
             ease: 'power2.inOut',
+            onUpdate: () => {
+                loopTimeline.progress(loopTimeline.progress() % 1);
+            },
             onComplete: () => {
-                // Snap to the nearest box
-                const winnerIndex = loopTimeline.current();
-                loopTimeline.toIndex(winnerIndex, {
+                const winnerIndex = Math.floor(loopTimeline.progress() * totalBoxes) % totalBoxes;
+                const winnerBox = BOXES[winnerIndex];
+                const winnerProgress = winnerIndex / totalBoxes;
+                gsap.to(loopTimeline, {
+                    progress: winnerProgress,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)',
                     onComplete: () => {
-                        const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
                         const scale = window.innerWidth <= 768 ? (window.innerHeight <= 600 ? 1.2 : 1.5) : 2;
                         gsap.to(winnerBox, {
