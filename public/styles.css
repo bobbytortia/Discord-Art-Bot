@@ -70,6 +70,7 @@ button.spin-button:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s ease, z-index 0.3s ease;
   flex-shrink: 0;
+  position: relative;
 }
 
 .box img {
@@ -80,8 +81,22 @@ button.spin-button:hover {
 }
 
 .winner {
-  border: 5px solid #f39c12;
+  border: 5px solid #ffd700; /* Golden border */
   animation: glow 1s ease-in-out infinite alternate;
+}
+
+.winner::before {
+  content: 'Winner';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffd700;
+  color: #1e1e1e;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .box.enlarged {
@@ -90,7 +105,7 @@ button.spin-button:hover {
   transition: transform 0.3s ease, z-index 0.3s ease;
 }
 
-.loading {
+.loading, .error {
   font-size: 1.2em;
   text-align: center;
   width: 100%;
@@ -100,10 +115,10 @@ button.spin-button:hover {
 /* Glow animation for winner */
 @keyframes glow {
   from {
-      box-shadow: 0 0 10px #f39c12;
+      box-shadow: 0 0 10px #ffd700;
   }
   to {
-      box-shadow: 0 0 20px #f39c12;
+      box-shadow: 0 0 20px #ffd700;
   }
 }
 
@@ -123,6 +138,12 @@ button.spin-button:hover {
       width: 200px;
       height: 300px;
       margin: 0 5px;
+  }
+
+  .winner::before {
+      font-size: 1em;
+      padding: 3px 8px;
+      top: -25px;
   }
 
   button.spin-button {

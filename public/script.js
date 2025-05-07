@@ -9,6 +9,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 gsap.registerPlugin(Draggable, ScrollTrigger);
 
+let loopTimeline; // Store the seamless loop timeline globally
+
 async function loadSubmissions() {
     const boxesContainer = document.querySelector('#boxes');
     boxesContainer.innerHTML = '<div class="loading">Loading art submissions...</div>';
@@ -59,16 +61,14 @@ function initializeSeamlessLoop() {
     const boxes = document.querySelectorAll('.box');
     const boxesContainer = document.querySelector('#boxes');
     const boxWidth = boxes[0].offsetWidth + 20;
-    const totalWidth = boxes.length * boxWidth / 2; // Half the boxes are duplicates
+    const totalWidth = boxes.length * boxWidth / 2;
 
-    // Set initial position
     gsap.set(boxesContainer, { x: 0 });
 
-    // Create seamless loop animation
-    const tl = gsap.timeline({ repeat: -1 });
-    tl.to(boxesContainer, {
+    loopTimeline = gsap.timeline({ repeat: -1, paused: false });
+    loopTimeline.to(boxesContainer, {
         x: -totalWidth,
-        duration: boxes.length / 2, // Adjust speed
+        duration: boxes.length / 2,
         ease: 'none',
         onUpdate: function() {
             if (Math.abs(gsap.getProperty(boxesContainer, 'x')) >= totalWidth) {
@@ -100,13 +100,32 @@ function initializeInteractions() {
     });
 
     boxes.forEach(box => {
-        box.addEventListener('click', () => {
+        box.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent triggering document click
             const isEnlarged = box.classList.contains('enlarged');
-            boxes.forEach(b => b.classList.remove('enlarged'));
+            boxes.forEach(b => {
+                b.classList.remove('enlarged', 'winner');
+                b.style.zIndex = ''; // Reset z-index
+            });
             if (!isEnlarged) {
                 box.classList.add('enlarged');
+                box.style.zIndex = '999';
+                if (loopTimeline) loopTimeline.pause();
+            } else {
+                if (loopTimeline) loopTimeline.play();
             }
         });
+    });
+
+    // Handle deselection on clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.box') && !e.target.classList.contains('spin-button')) {
+            boxes.forEach(b => {
+                b.classList.remove('enlarged', 'winner');
+                b.style.zIndex = '';
+            });
+            if (loopTimeline) loopTimeline.play();
+        }
     });
 
     document.querySelector('.spin-button').addEventListener('click', () => {
@@ -117,13 +136,16 @@ function initializeInteractions() {
 
         boxes.forEach(box => {
             box.classList.remove('winner', 'enlarged');
+            box.style.zIndex = '';
         });
 
-        const totalBoxes = boxes.length / 2; // Account for duplicates
+        if (loopTimeline) loopTimeline.pause();
+
+        const totalBoxes = boxes.length / 2;
         const spinDuration = 3;
         const spins = 3;
-        const randomOffset = Math.random() * boxWidth;
-        const targetX = -(spins * totalBoxes * boxWidth + randomOffset);
+        const randomIndex = Math.floor(Math.random() * totalBoxes);
+        const targetX = -(randomIndex * boxWidth + spins * totalBoxes * boxWidth);
 
         gsap.to(boxesContainer, {
             x: targetX,
@@ -138,7 +160,8 @@ function initializeInteractions() {
                     onComplete: () => {
                         const winnerIndex = Math.abs(Math.round(snapX / boxWidth)) % totalBoxes;
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
-                        winnerBox.classList.add('winner');
+                        winnerBox.classList.add('winner', 'enlarged');
+                        winnerBox.style.zIndex = '999';
                         // Center the winner
                         const winnerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
                         gsap.to(boxesContainer, {
