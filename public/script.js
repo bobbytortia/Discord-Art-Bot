@@ -108,16 +108,16 @@ function initializeInteractions() {
             });
             if (!isEnlarged) {
                 box.classList.add('enlarged');
-                // Center the box in viewport
                 const rect = box.getBoundingClientRect();
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
-                const centerX = (viewportWidth - rect.width * 2) / 2 - rect.left; // Scale is 2
-                const centerY = (viewportHeight - rect.height * 2) / 2 - rect.top;
+                const scale = viewportWidth <= 768 ? 1.5 : 2;
+                const centerX = (viewportWidth - rect.width * scale) / 2 - rect.left;
+                const centerY = (viewportHeight - rect.height * scale) / 2 - rect.top;
                 gsap.to(box, {
                     x: centerX,
                     y: centerY,
-                    scale: window.innerWidth <= 768 ? 1.5 : 2, // Match CSS scale
+                    scale: scale,
                     duration: 0.5,
                     ease: 'elastic.out(1, 0.5)'
                 });
@@ -172,13 +172,17 @@ function initializeInteractions() {
                         const winnerIndex = Math.abs(Math.round(snapX / boxWidth)) % totalBoxes;
                         const winnerBox = document.querySelector(`.box:nth-child(${winnerIndex + 1})`);
                         winnerBox.classList.add('winner', 'enlarged');
-                        // Center the winner in viewport
-                        const rect = winnerBox.getBoundingClientRect();
+
+                        // Reset container position to center the winner
+                        const containerRect = boxesContainer.getBoundingClientRect();
+                        const winnerRect = winnerBox.getBoundingClientRect();
                         const viewportWidth = window.innerWidth;
                         const viewportHeight = window.innerHeight;
                         const scale = viewportWidth <= 768 ? 1.5 : 2;
-                        const centerX = (viewportWidth - rect.width * scale) / 2 - rect.left;
-                        const centerY = (viewportHeight - rect.height * scale) / 2 - rect.top;
+
+                        // Center the winner box in the viewport
+                        const centerX = (viewportWidth - winnerRect.width * scale) / 2 - winnerRect.left;
+                        const centerY = (viewportHeight - winnerRect.height * scale) / 2 - winnerRect.top;
                         gsap.to(winnerBox, {
                             x: centerX,
                             y: centerY,
@@ -186,10 +190,11 @@ function initializeInteractions() {
                             duration: 0.5,
                             ease: 'elastic.out(1, 0.5)'
                         });
-                        // Center the container to show the winner
-                        const winnerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
+
+                        // Adjust container to ensure winner is visible
+                        const containerX = -winnerIndex * boxWidth + (boxesContainer.offsetWidth - boxWidth) / 2;
                         gsap.to(boxesContainer, {
-                            x: winnerX,
+                            x: containerX,
                             duration: 0.5,
                             ease: 'power2.out'
                         });
